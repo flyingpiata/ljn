@@ -1,0 +1,427 @@
+/* 全局设置 */
+/* 修改后的 body, html 设置 */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    
+    /* --- 这里是修改的部分 --- */
+    
+    /* 1. 设置背景颜色（作为底色，防止图片加载慢时是一片黑/白） */
+    background-color: #fcfcfc; 
+
+    /* 2. 引入你的背景纹理图 */
+    background-image: url('images/bg-pattern.png');
+
+    /* 3. 设置平铺模式（repeat表示在水平和垂直方向都重复，像铺地砖一样） */
+    background-repeat: repeat;
+
+    /* 4. (可选) 如果你的纹理图太大或太小，可以调整这个数值，比如 100px 或 50% */
+    background-size: auto; 
+    
+    /* --- 修改结束 --- */
+
+    font-family: 'Nunito', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 容器 */
+.container {
+    position: relative;
+    z-index: 10; /* 保证照片在最上层，除非贴图盖住它 */
+    text-align: center;
+}
+
+/* 拍立得风格相框 */
+.photo-card {
+    background: white;
+    /* 修改 padding：底部改为 20px，因为文字区域(.caption)本身会有高度了 */
+    padding: 15px 15px 20px 15px; 
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transform: rotate(-2deg);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+    
+    /* 确保布局稳定 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.photo-card:hover {
+    transform: rotate(0deg) scale(1.02);
+}
+
+.photo-wrapper {
+    overflow: hidden;
+    border-radius: 4px;
+}
+
+/* 照片样式 */
+.main-photo {
+    max-width: 350px; /* 限制照片宽度，手机上也合适 */
+    height: auto;
+    display: block;
+    border: 1px solid #eee;
+}
+
+/* 文字说明 */
+.caption {
+    margin-top: 15px;
+    color: #888;
+    font-weight: 700;
+    letter-spacing: 1px;
+    
+    /* --- 宽度限制 (保持之前的) --- */
+    width: 100%;
+    max-width: 300px;
+    
+    /* --- 新增：高度锁定 --- */
+    height: 45px; /* 设定一个固定的高度，请根据你的文字长短调整这个数值 */
+    
+    /* 防止溢出：如果文字真的太多了，超出的部分隐藏，而不是撑开盒子 */
+    overflow: hidden; 
+
+    /* 处理换行 (保持之前的) */
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    
+    /* 文字排版 */
+    text-align: center; /* 文字居中 */
+    
+}
+
+/* 小可爱贴图的样式 */
+.sticker {
+    position: absolute;
+    width: 50px; 
+    height: 50px;
+    object-fit: contain;
+    z-index: 20;
+    /* 关键点：加上过渡效果，让位置变化时产生顺滑的动画 */
+    /* cubic-bezier 让动画开始快，结束时慢，有种"着陆"的感觉 */
+    transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    
+    /* 初始状态：虽然JS会改，但先设个 opacity 避免闪烁 */
+    opacity: 1; 
+}
+
+/* --- 新增：摇摆动画 --- */
+
+/* 定义左右摇晃的动作 */
+@keyframes sway {
+    0% { transform: rotate(-20deg) scale(1); }
+    50% { transform: rotate(20deg) scale(1); }
+    100% { transform: rotate(-20deg) scale(1); }
+}
+
+/* 这个类名会被JS加到图片上 */
+.sticker.swaying {
+    /* 动画名称 时长 循环方式 缓动函数 */
+    animation: sway 1.5s infinite ease-in-out;
+    
+    /* 移除之前的 transition，防止摇摆时和位移动画冲突 */
+    transition: none !important; 
+}
+
+/* 闪光覆盖层：默认透明，不挡鼠标点击，层级最高 */
+#flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 999; /* 确保盖住一切，包括照片 */
+    opacity: 0;
+    pointer-events: none; /* 关键：让鼠标点击能穿透它打到 body 上 */
+}
+
+/* 定义闪烁动画：金光 -> 消失 -> 粉光 -> 消失 */
+@keyframes magicFlashAnim {
+    0% { opacity: 0; background-color: rgba(255, 215, 0, 0.8); /* 金色起始 */ }
+    20% { opacity: 0.8; } /* 第一下金光爆闪 */
+    40% { opacity: 0; background-color: rgba(255, 215, 0, 0.8); } /* 灭 */
+    
+    41% { background-color: rgba(255, 105, 180, 0.8); /* 切换为粉色 */ }
+    60% { opacity: 0.8; } /* 第二下粉光爆闪 */
+    100% { opacity: 0; background-color: rgba(255, 105, 180, 0.8); /* 灭 */ }
+}
+
+/* 这个类名被 JS 加上时触发动画 */
+#flash-overlay.is-flashing {
+    /* 1.2秒内完成两次闪烁，速度快一点更有冲击力 */
+    animation: magicFlashAnim 1.2s ease-out forwards;
+}
+
+/* =========================================
+   新增特效：背景漂浮爱心
+========================================= */
+
+/* 存放背景粒子的容器，确保它们在最底层，不挡操作 */
+#background-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* 鼠标穿透 */
+    overflow: hidden;
+}
+
+/* 单个漂浮粒子的样式 (这里用 CSS 画一个心形) */
+.floating-heart {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 192, 203, 0.6); /* 半透明粉色 */
+    transform: rotate(45deg);
+    /* 动画：飘动 + 渐隐 */
+    animation: floatUp linear forwards;
+}
+
+/* 使用伪元素让方块变成心形 */
+.floating-heart::before,
+.floating-heart::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(255, 142, 143, 0.8);
+}
+.floating-heart::before { top: -10px; left: 0; }
+.floating-heart::after { top: 0; left: -10px; }
+
+/* 定义向上漂浮和消失的动画 */
+@keyframes floatUp {
+    0% {
+        transform: translateY(100vh) rotate(45deg) scale(0.5);
+        opacity: 0;
+    }
+    20% { opacity: 0.8; }
+    100% {
+        /* 向上飘到屏幕外，并且随机旋转一下 */
+        transform: translateY(-100px) rotate(var(--rotation)) scale(1);
+        opacity: 0;
+    }
+}
+
+/* =========================================
+   新增特效：鼠标星光轨迹
+========================================= */
+.mouse-sparkle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #fff; /* 白色星光 */
+    box-shadow: 0 0 10px #fff, 0 0 20px #FFD700; /*带点金色光晕*/
+    pointer-events: none; /* 不挡鼠标 */
+    z-index: 9999; /* 最高层级 */
+    /* 动画：变小并消失 */
+    animation: sparkleFade 0.8s linear forwards;
+}
+
+@keyframes sparkleFade {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+/* =========================================
+   新增特效：梦幻悬浮按钮 & 弹窗
+========================================= */
+
+/* --- 1. 悬浮按钮容器 --- */
+.float-btn-container {
+    position: fixed;
+    bottom: 40px;      /* 稍微提上来一点，更显眼 */
+    right: 50%;        /* 手机端建议居中，或者保持 right: 30px */
+    /* 如果想在手机居中，电脑靠右，可以使用上面的媒体查询单独设置。
+       这里为了省事，我们让它在电脑靠右，手机上也靠右但大一点 */
+    transform: translateX(50%); /* 配合 right: 50% 可居中，但在右下角的话不需要 */
+    /* 这里我们保持右下角布局，但调整显示逻辑 */
+    right: 30px;
+    transform: none; 
+
+    z-index: 1000;
+    cursor: pointer;
+    
+    /* --- 关键修改：初始状态隐藏 --- */
+    opacity: 0; 
+    pointer-events: none; /* 看不见时不能点 */
+    transform: translateY(50px); /* 初始位置沉下去 */
+    transition: all 1s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* 像弹簧一样弹出来的过渡 */
+}
+
+/* 当加上 show 类名时，按钮出现 */
+.float-btn-container.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    /* 出现后，继续保持之前的漂浮动画，我们需要在子元素上做动画，
+       或者利用 animation 的特性。为了简单，出现后我们用 JS 加上漂浮类 */
+}
+
+
+/* 上下轻轻漂浮的动画，增加灵动感 */
+@keyframes floaty {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+/* 按钮变大变醒目 */
+.float-btn-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #feada6 100%); /* 颜色更鲜艳一点 */
+    
+    /* --- 尺寸加大 --- */
+    padding: 18px 35px 18px 20px; 
+    border-radius: 60px;
+    font-size: 20px; /* 字号加大 */
+    
+    box-shadow: 0 15px 35px rgba(255, 105, 180, 0.6); /* 阴影更重 */
+    color: white;
+    font-weight: 800; /* 字体更粗 */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    z-index: 2;
+}
+
+/* 图标也变大 */
+.btn-icon {
+    width: 45px; /* 变大 */
+    height: 45px;
+    margin-right: 12px;
+    filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.1));
+}
+
+/* 漂浮动画 (单独加给一个类，防止和出现的动画冲突) */
+.anim-floating {
+    animation: floaty 3s ease-in-out infinite;
+}
+
+/* --- 3. 鼠标悬停交互效果 --- */
+.float-btn-container:hover .float-btn-content {
+    transform: scale(1.05) translateY(-5px); /* 变大并上浮 */
+    box-shadow: 0 15px 35px rgba(255, 170, 185, 0.7);
+}
+
+.float-btn-container:hover .btn-icon {
+    transform: rotate(10deg) scale(1.2); /* 图标反向旋转并变大 */
+}
+
+/* 背后的发光层 */
+.btn-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    transform: translate(-50%, -50%);
+    border-radius: 50px;
+    background: inherit;
+    filter: blur(20px); /* 高斯模糊形成光晕 */
+    opacity: 0.5;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+}
+.float-btn-container:hover .btn-glow {
+    opacity: 0.8; /* 悬停时光晕更强 */
+}
+
+
+/* --- 4. 弹窗覆盖层 (毛玻璃效果) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* 半透明黑色背景 */
+    background-color: rgba(0, 0, 0, 0.4);
+    /* 核心：背景毛玻璃模糊滤镜，非常高级！ */
+    backdrop-filter: blur(8px); 
+    z-index: 2000;
+    /* 默认隐藏 */
+    opacity: 0;
+    pointer-events: none;
+    /* 居中显示内容 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.4s ease;
+}
+
+/* 当添加了 'active' 类时显示 */
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* --- 5. 弹窗内容框 --- */
+.modal-content {
+    background: #fff;
+    padding: 40px;
+    border-radius: 25px;
+    text-align: center;
+    position: relative;
+    max-width: 90%;
+    width: 400px;
+    /* 梦幻的大阴影 */
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 0 0 8px rgba(255, 255, 255, 0.4);
+    /* 初始状态：缩小并向下偏移 */
+    transform: scale(0.7) translateY(50px);
+    opacity: 0;
+    /* 使用贝塞尔曲线让弹出效果像果冻一样Q弹 */
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 弹窗激活时的状态 */
+.modal-overlay.active .modal-content {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+/* 收款码图片 */
+.qr-image {
+    width: 80%;
+    max-width: 280px;
+    border-radius: 15px;
+    border: 3px solid #ffbed2;
+    margin: 20px 0;
+}
+
+/* 文字样式 */
+.modal-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ff9a9e;
+    margin-top: 0;
+}
+.modal-tip {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 0;
+}
+
+/* 关闭按钮 */
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 30px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+.close-modal:hover {
+    color: #ff9a9e;
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <script>
+        if (screen.width < 750) {
+            document.write('<meta name="viewport" content="width=750, user-scalable=no, target-densitydpi=device-dpi">');
+        } else {
+            document.write('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+        }
+    </script>
+    <title>LJN 的可爱小世界</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="gstyle.css" rel="stylesheet">
+</head>
+<body>
+    <div id="background-particles"></div>
+    <div id="flash-overlay"></div>
+    <audio id="bgm" src="images/bgm.mp3" loop></audio>
+    <audio id="sfx-magic" src="images/magic.mp3"></audio>
+    <div class="container">
+        <div class="photo-card" id="clickArea">
+            <div class="photo-wrapper">
+                <img src="images/main-photo.jpg" alt="Beautiful Girl" class="main-photo">
+            </div>
+            <p class="caption" id="message-box">✨ 点击屏幕开启魔法 ✨</p>
+        </div>
+    </div>
+
+    <div id="sticker-container"></div>
+
+    <div class="float-btn-container" id="coffee-btn">
+        <div class="float-btn-content">
+            <img src="images/armor-icon.png" alt="铠甲图标" class="btn-icon">
+            <span class="btn-text">给我买咖啡</span>
+        </div>
+        <div class="btn-glow"></div>
+    </div>
+
+    <div id="qr-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <p class="modal-title">✨ 谢谢老板的能量投喂 ✨</p>
+            <img src="images/wxqrcode.png" alt="收款码" class="qr-image">
+            <p class="modal-tip">扫码后小可爱们会更有精神讨伐哦！🌹</p>
+        </div>
+    </div>
+
+<script src="script.js"></script>
+</body>
+</html>
