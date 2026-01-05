@@ -13,6 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const qrModal = document.getElementById('qr-modal');
     const closeModal = document.querySelector('.close-modal');
 
+    // 【新增】获取爱心气泡元素
+    const loveBubble = document.getElementById('love-bubble');
+    
     // --- 在这里配置你想对她说的话 ---
     const loveMessage = "2026.01.05 我们都爱吃比格披萨🍕"; 
 
@@ -31,7 +34,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // N
         {x: 3, y: 2}, {x: 3, y: 1}, {x: 3, y: 0}, {x: 3, y: -1}, {x: 3, y: -2}, {x: 3.8, y: -1}, {x: 4.6, y: 0}, {x: 5.4, y: 1}, {x: 6.2, y: -2}, {x: 6.2, y: -1}, {x: 6.2, y: 0}, {x: 6.2, y: 1}, {x: 6.2, y: 2}
     ];
+    // --- 【新增】2. I❤U 坐标点 (尽量凑齐28个点以便一一对应) ---
+    const pointsLove = [
+        // I (5个) - 左侧竖线
+        {x: -6, y: -2}, {x: -6, y: -1}, {x: -6, y: 0}, {x: -6, y: 1}, {x: -6, y: 2},
+        
+        // ❤ (14个) - 中间心形
+        // 左半边心
+        {x: -2, y: -1}, {x: -3, y: -2}, {x: -1, y: -2}, {x: -3.5, y: -0.5}, {x: -3, y: 0.5}, {x: -2, y: 1.5},
+        // 中间凹陷和尖尖
+        {x: 0, y: -1}, {x: 0, y: 3}, 
+        // 右半边心
+        {x: 2, y: -1}, {x: 3, y: -2}, {x: 1, y: -2}, {x: 3.5, y: -0.5}, {x: 3, y: 0.5}, {x: 2, y: 1.5},
 
+        // U (9个) - 右侧U形
+        {x: 5, y: -2}, {x: 5, y: -1}, {x: 5, y: 0}, {x: 5, y: 1}, // 左竖
+        {x: 5.5, y: 2}, {x: 6.5, y: 2}, // 底部横
+        {x: 7, y: 1}, {x: 7, y: 0}, {x: 7, y: -1}, {x: 7, y: -2} // 右竖
+    ];
+    
     let isAnimating = false;
     let hasPlayed = false; // 保证只触发一次，避免乱套
 
@@ -73,16 +94,15 @@ document.addEventListener('DOMContentLoaded', () => {
         flashOverlay.classList.add('is-flashing');
 
         setTimeout(() => {
-            startChiikawaRain();
+            startChiikawaRain(pointsLJN);
         }, 1000); 
     });
 
-    function startChiikawaRain() {
+    function startChiikawaRain(targetPoints) {
         container.innerHTML = '';
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
-        const shuffledPoints = [...points].sort(() => Math.random() - 0.5);
-        
+        const shuffledPoints = [...targetPoints].sort(() => Math.random() - 0.5);        
         let maxDuration = 0; // 记录最慢的那个小可爱飞多久
 
         // 获取当前的布局配置
@@ -157,12 +177,63 @@ document.addEventListener('DOMContentLoaded', () => {
                     coffeeBtn.classList.add('show');
                     // 3. 开始按钮的上下漂浮动画
                     coffeeBtn.classList.add('anim-floating');
+
+                    // 【新增】显示“爱心气泡”
+                    loveBubble.classList.add('show');
                 }, 500);
             }
         }
         type();
     }
 });
+// --- 【新增】爱心气泡点击事件：变换阵型 ---
+loveBubble.addEventListener('click', (e) => {
+        e.stopPropagation(); // 防止触发其他点击
+        
+        // 1. 播放魔法音效增加仪式感
+        if(sfxMagic) {
+            sfxMagic.currentTime = 0; // 从头播放
+            sfxMagic.play();
+        }
+        
+        // 2. 隐藏气泡自己 (任务完成)
+        loveBubble.classList.remove('show');
+
+        // 3. 执行变换动画
+        transformStickersTo(pointsLove);
+});
+
+// --- 【新增】变换阵型函数 ---
+function transformStickersTo(newPoints) {
+        // 获取当前屏幕上所有已经存在的小可爱
+        const existingStickers = document.querySelectorAll('.sticker');
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+
+        // 遍历每一个小可爱，给它们分配新的位置
+        existingStickers.forEach((sticker, index) => {
+            // 如果新的点阵数量比现有小可爱少，多余的就不动了(或者可以隐藏)
+            if (index >= newPoints.length) return; 
+            
+            const point = newPoints[index];
+            const targetX = centerX + point.x * spacing - 25;
+            const targetY = centerY + point.y * spacing - 25;
+            
+            // 重新设置过渡时间和效果，让变换看起来顺滑
+            // 稍微加一点随机延迟，让它们不是同时起步，更生动
+            const delay = Math.random() * 0.5;
+            sticker.style.transition = `all 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) ${delay}s`;
+            
+            // 设置新位置
+            sticker.style.left = targetX + 'px';
+            sticker.style.top = targetY + 'px';
+            
+            // 变换时稍微旋转一下，增加动感
+            const newRotate = (Math.random() * 40) - 20;
+            // 注意：要保留 swaying 类名，这样它们到达新位置后还会继续摇摆
+            sticker.style.transform = `rotate(${newRotate}deg) scale(1)`;
+        });
+}
 
 function createFloatingHearts() {
 
@@ -278,3 +349,4 @@ document.addEventListener('keydown', (e) => {
     }
 
 });
+
