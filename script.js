@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModal = document.querySelector('.close-modal');
 
     // --- 在这里配置你想对她说的话 ---
-    const loveMessage = "你的香味与众不同，我劝告了风，晚点送它走🌹"; 
+    const loveMessage = "2026.01.05 我们都爱吃比格披萨🍕"; 
 
     const characters = [
         'images/chiikawa.png',
@@ -276,4 +276,5 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && qrModal.classList.contains('active')) {
         closePopup();
     }
+
 });
