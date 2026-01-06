@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const magicLever = document.getElementById('magic-lever');
     
     // --- 在这里配置你想对她说的话 ---
-    const loveMessage = "2026.01.06 今天说什么都要运动🏋️‍"; 
+    const loveMessage = "2026.01.06 希望早日一起运动🏋️‍"; 
 
     const characters = [
         'images/chiikawa.png',
@@ -515,4 +515,5 @@ document.addEventListener('keydown', (e) => {
     }
 
 });
+
 
