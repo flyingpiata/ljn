@@ -547,3 +547,95 @@ body, html {
 .drawing {
     animation: drawLineAnim 3.5s ease-in-out forwards;
 }
+
+/* =========================================
+   新增特效：魔法摇杆 & 掉落小可爱
+========================================= */
+
+/* 1. 摇杆整体容器 */
+#magic-lever {
+    position: absolute;
+    top: 50px;
+    right: -40px; /* 挂在照片右侧外面 */
+    width: 40px;
+    height: 100px;
+    z-index: 5;
+    opacity: 0; /* 默认隐藏 */
+    pointer-events: none;
+    transition: opacity 1s ease;
+}
+
+#magic-lever.show {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+/* 2. 摇杆部件样式 */
+.lever-base {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 30px;
+    height: 30px;
+    background: #ddd;
+    border-radius: 50%;
+    box-shadow: inset -2px -2px 5px rgba(0,0,0,0.2);
+}
+
+.lever-stick {
+    position: absolute;
+    bottom: 15px;
+    left: 10px;
+    width: 10px;
+    height: 60px;
+    background: #ccc;
+    border-radius: 5px;
+    transform-origin: bottom center; /* 旋转轴在底部 */
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.lever-ball {
+    position: absolute;
+    top: -10px; /* 相对于杆子顶部 */
+    left: -10px; /* 居中 */
+    width: 30px;
+    height: 30px;
+    background: radial-gradient(circle at 30% 30%, #ff9a9e, #ff6a88); /* 粉色立体球 */
+    border-radius: 50%;
+    box-shadow: 0 5px 10px rgba(255, 106, 136, 0.4);
+}
+
+
+/* 定义拉动动画类 */
+#magic-lever.pulled .lever-stick {
+    transform: rotate(45deg); /* 向下拉45度 */
+}
+
+/* 3. 掉落的小可爱样式 */
+.falling-sticker {
+    position: fixed;
+    top: -100px; /* 从屏幕外开始 */
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    z-index: 9999; /* 最上层 */
+    /* 下落动画 */
+    animation: fallDown 1.5s cubic-bezier(0.5, 0.05, 1, 0.5) forwards;
+}
+
+@keyframes fallDown {
+    0% { top: -100px; transform: rotate(0deg); }
+    70% { 
+        top: calc(100vh - 80px); /* 砸到底部 */
+        transform: rotate(10deg);
+    }
+    85% { 
+        top: calc(100vh - 120px); /* 弹起来一点 */
+        transform: rotate(-5deg);
+    }
+    100% { 
+        top: calc(100vh - 70px); /* 最终停在底部 */
+        transform: rotate(0deg); 
+    }
+}

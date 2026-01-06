@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loveBubble = document.getElementById('love-bubble');
     const brushPath = document.getElementById('brush-path');
 
+    const magicLever = document.getElementById('magic-lever');
+    
     // --- 在这里配置你想对她说的话 ---
     const loveMessage = "2026.01.06 今天说什么都要运动🏋️‍"; 
 
@@ -77,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     clickArea.addEventListener('click', (e) => {
         // 如果点击的是按钮或者弹窗，不触发动画
-        if (e.target.closest('#coffee-btn') || e.target.closest('.modal-content') || e.target.closest('.close-modal')) return;
+        if (e.target.closest('#coffee-btn') || e.target.closest('.modal-content') || e.target.closest('.close-modal') || e.target.closest('#magic-lever')) return;
 
         if (isAnimating || hasPlayed) return;
         isAnimating = true;
@@ -275,6 +277,10 @@ function transformStickersToMagic(newPoints) {
             // 延迟 800ms，等它们差不多站好并开始摇摆了再画
             setTimeout(() => {
                 drawConnectingLine();
+                // 【新增】画完线后，显示摇杆
+                setTimeout(() => {
+                    magicLever.classList.add('show');
+                }, 4000); // 等线画完(3.5s)再出来
             }, 800);
 
         }, 1600); // 1.6秒后执行 (100ms延迟 + 1.5s旋转)
@@ -347,7 +353,53 @@ function drawConnectingLine() {
         brushPath.classList.add('drawing');
     }
 
+
+    // === 【新增】摇杆交互逻辑 ===
+    magicLever.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        // 1. 摇杆下拉动画
+        // 如果正在拉动中，不要重复触发
+        if (magicLever.classList.contains('pulled')) return;
+        magicLever.classList.add('pulled');
+
+        // 2. 播放一点小音效 (如果有的话，这里复用magic)
+        if(sfxMagic) {
+            sfxMagic.currentTime = 0; 
+            sfxMagic.play();
+        }
+
+        // 3. 生成掉落小可爱
+        spawnFallingSticker();
+
+        // 4. 摇杆复位 (0.3秒后)
+        setTimeout(() => {
+            magicLever.classList.remove('pulled');
+        }, 300);
+    });
+
+    function spawnFallingSticker() {
+        const img = document.createElement('img');
+        // 随机选一张图
+        img.src = characters[Math.floor(Math.random() * characters.length)];
+        img.className = 'falling-sticker';
+        
+        // 随机水平位置 (屏幕宽度 5% - 95%)
+        const randomX = Math.random() * 90 + 5; 
+        img.style.left = randomX + 'vw';
+        
+        // 添加到 body 直接显示
+        document.body.appendChild(img);
+
+        // 动画结束后移除元素 (2秒后)，防止页面堆积太多卡顿
+        // *如果你想让它们堆在底部不消失，就把下面这行注释掉*
+        // 但建议移除，不然玩一百次页面会卡
+        setTimeout(() => {
+           // img.remove(); // 如果你想让它们堆起来，就不要移除这一行
+        }, 2000); 
+    }    
 });
+
 
 function createFloatingHearts() {
 
